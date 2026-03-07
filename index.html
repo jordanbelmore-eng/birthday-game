@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Austin and Jordan: Six Years of Adventure!</title>
+
+<style>
+
+body{
+background:black;
+color:white;
+font-family:monospace;
+text-align:center;
+}
+
+canvas{
+border:3px solid white;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Austin and Jordan: Six Years of Adventure!</h1>
+<p>ENTER = Start | Arrows = Move | SPACE = Switch Character</p>
+
+<canvas id="game" width="750" height="500"></canvas>
+
+<script>
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let start=false;
+
+let player={
+x:60,
+y:60,
+size:24,
+speed:3,
+character:1
+}
+
+let health=3;
+let level=1;
+
+let enemies=[];
+let walls=[];
+let pits=[];
+let boss=null;
+
+let goal={x:700,y:450,size:30};
+
+const keys={};
+
+document.addEventListener("keydown",e=>{
+
+keys[e.key]=true;
+
+if(e.key==="Enter")
+start=true;
+
+if(e.key===" ")
+player.character = player.character===1 ? 2 : 1;
+
+});
+
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+function newLevel(){
+
+enemies=[];
+walls=[];
+pits=[];
+boss=null;
+
+for(let i=0;i<level+2;i++){
+
+enemies.push({
+x:Math.random()*700,
+y:Math.random()*450,
+size:20
+})
+
+}
+
+for(let i=0;i<level+3;i++){
+
+walls.push({
+x:Math.random()*700,
+y:Math.random()*450,
+size:35
+})
+
+}
+
+if(level===6){
+
+for(let i=0;i<6;i++){
+
+pits.push({
+x:Math.random()*700,
+y:Math.random()*450,
+size:40
+})
+
+}
+
+boss={
+x:350,
+y:200,
+size:50,
+hp:12
+}
+
+}
+
+player.x=60;
+player.y=60;
+
+}
+
+function collide(a,b){
+
+return(
+a.x < b.x+b.size &&
+a.x+a.size > b.x &&
+a.y < b.y+b.size &&
+a.y+a.size > b.y
+)
+
+}
+
+function update(){
+
+if(!start) return;
+
+if(keys["ArrowLeft"]) player.x-=player.speed;
+if(keys["ArrowRight"]) player.x+=player.speed;
+if(keys["ArrowUp"]) player.y-=player.speed;
+if(keys["ArrowDown"]) player.y+=player.speed;
+
+for(let w of walls)
+if(collide(player,w)){
+player.x=60;
+player.y=60;
+}
+
+for(let p of pits)
+if(collide(player,p)){
+health--;
+player.x=60;
+player.y=60;
+}
+
+for(let e of enemies){
+
+e.x+=Math.random()*4-2;
+e.y+=Math.random()*4-2;
+
+if(collide(player,e)){
+health--;
+player.x=60;
+player.y=60;
+}
+
+}
+
+if(boss){
+
+boss.x+=Math.random()*4-2;
+boss.y+=Math.random()*4-2;
+
+if(collide(player,boss)){
+health--;
+player.x=60;
+player.y=60;
+}
+
+}
+
+if(health<=0){
+
+alert("Game Over!");
+
+level=1;
+health=3;
+newLevel();
+
+}
+
+if(collide(player,goal)){
+
+level++;
+
+if(level>6){
+
+alert("Austin and Jordan completed Six Years of Adventure!");
+
+level=1;
+health=3;
+
+}
+
+newLevel();
+
+}
+
+}
+
+function drawCharacter(){
+
+// Austin (Hockey Gear)
+
+if(player.character===1){
+
+ctx.fillStyle="green";
+ctx.fillRect(player.x+6,player.y,12,6);
+
+ctx.fillStyle="#f1c27d";
+ctx.fillRect(player.x+6,player.y+6,12,6);
+
+ctx.fillStyle="orange";
+ctx.fillRect(player.x+6,player.y+10,12,4);
+
+ctx.fillStyle="#0a7a2f";
+ctx.fillRect(player.x+4,player.y+14,16,10);
+
+}
+
+// Jordan (Suit)
+
+if(player.character===2){
+
+ctx.fillStyle="#f1c27d";
+ctx.fillRect(player.x+6,player.y,12,8);
+
+ctx.fillStyle="brown";
+ctx.fillRect(player.x+6,player.y+6,12,4);
+
+ctx.fillStyle="black";
+ctx.fillRect(player.x+7,player.y+3,3,2);
+ctx.fillRect(player.x+14,player.y+3,3,2);
+
+ctx.fillStyle="blue";
+ctx.fillRect(player.x+4,player.y+10,16,12);
+
+ctx.fillStyle="red";
+ctx.fillRect(player.x+11,player.y+10,2,6);
+
+}
+
+}
+
+function drawLevelTheme(){
+
+if(level===1){
+canvas.style.background="#d9f0ff"
+ctx.fillText("Level 1: Hospital ER",300,20)
+}
+
+if(level===2){
+canvas.style.background="#fff2cc"
+ctx.fillText("Level 2: Classroom",300,20)
+}
+
+if(level===3){
+canvas.style.background="#cce5ff"
+ctx.fillText("Level 3: Hockey Arena",300,20)
+}
+
+if(level===4){
+canvas.style.background="#d4ffd4"
+ctx.fillText("Level 4: Anime Forest",300,20)
+}
+
+if(level===5){
+canvas.style.background="#eadcff"
+ctx.fillText("Level 5: Church",300,20)
+}
+
+if(level===6){
+canvas.style.background="#330000"
+ctx.fillStyle="orange"
+ctx.fillText("FINAL BOSS: Lava Dungeon",260,20)
+}
+
+}
+
+function draw(){
+
+if(!start){
+
+ctx.fillStyle="white";
+ctx.font="30px monospace";
+ctx.fillText("Austin and Jordan:",250,220);
+ctx.fillText("Six Years of Adventure!",200,260);
+ctx.font="18px monospace";
+ctx.fillText("Press ENTER to Start",280,320);
+
+return;
+
+}
+
+ctx.clearRect(0,0,750,500);
+
+drawLevelTheme();
+
+drawCharacter();
+
+ctx.fillStyle="red";
+
+for(let e of enemies)
+ctx.fillRect(e.x,e.y,e.size,e.size);
+
+ctx.fillStyle="gray";
+
+for(let w of walls)
+ctx.fillRect(w.x,w.y,w.size,w.size);
+
+ctx.fillStyle="black";
+
+for(let p of pits)
+ctx.fillRect(p.x,p.y,p.size,p.size);
+
+if(boss){
+
+ctx.fillStyle="purple";
+ctx.fillRect(boss.x,boss.y,boss.size,boss.size);
+
+}
+
+ctx.fillStyle="yellow";
+ctx.fillRect(goal.x,goal.y,goal.size,goal.size);
+
+ctx.fillStyle="white";
+ctx.fillText("Level:"+level+" Health:"+health,10,20);
+
+}
+
+function loop(){
+
+update();
+draw();
+requestAnimationFrame(loop);
+
+}
+
+newLevel();
+loop();
+
+</script>
+
+</body>
+</html>
